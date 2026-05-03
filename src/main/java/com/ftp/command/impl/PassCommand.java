@@ -82,7 +82,6 @@ public class PassCommand extends BaseCommandHandler {
         } else {
             loginAttemptManager.recordFailedAttempt(session.getSessionOptions().getClientAddress());
             session.getAuthContext().clearPendingUsername();
-            int attempts = loginAttemptManager.getFailedAttempts(session.getSessionOptions().getClientAddress());
             sendResponse(out, ResponseGenerator.CODE_530);
         }
     }

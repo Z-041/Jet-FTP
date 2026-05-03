@@ -1,16 +1,12 @@
 package com.ftp.config;
 
 import com.ftp.constants.FtpConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigValidator {
-    private static final Logger logger = LoggerFactory.getLogger(ConfigValidator.class);
 
     public static ValidationResult validateConfig(Config config) {
         ValidationResult result = new ValidationResult();
