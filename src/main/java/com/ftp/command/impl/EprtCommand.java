@@ -3,6 +3,7 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.session.TransferContext;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,7 +54,7 @@ public class EprtCommand extends BaseCommandHandler {
             session.getTransferContext().setPassiveMode(false);
             session.getTransferContext().setActiveAddress(address);
             session.getTransferContext().setActivePort(port);
-            session.getTransferContext().setActiveProtocol(protocol);
+            session.getTransferContext().setActiveProtocol(TransferContext.Protocol.fromValue(protocol));
             session.getDataConnectionManager().closePassiveServerSocket();
             
             logger.info("EPRT active mode: " + address + ":" + port + " (proto=" + 

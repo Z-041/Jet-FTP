@@ -27,12 +27,14 @@ public class ClientHandler implements Runnable {
     private final String handlerId;
     private final ConnectionInfo connectionInfo;
     private final List<ConnectionListener> connectionListeners;
+    private final CommandFactory commandFactory;
 
     public ClientHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
         this.logger = LoggerFactory.getLogger(ClientHandler.class);
         this.handlerId = UUID.randomUUID().toString();
         this.connectionListeners = new ArrayList<>();
+        this.commandFactory = CommandFactory.getInstance();
         
         Config config = ConfigManager.getInstance().getConfig();
         File rootDir = new File(config.getRootDirectory());
@@ -82,8 +84,7 @@ public class ClientHandler implements Runnable {
                 String commandName = parser.getCommand();
                 String argument = parser.getArgument();
 
-                CommandFactory factory = CommandFactory.getInstance();
-                CommandHandler handler = factory.getCommand(commandName);
+                CommandHandler handler = commandFactory.getCommand(commandName);
 
                 if (handler == null) {
                     String upperCmd = commandName.toUpperCase();

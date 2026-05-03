@@ -114,9 +114,7 @@ public class PathValidator {
         String sanitized = path.trim();
         sanitized = sanitized.replace('\\', '/');
 
-        while (sanitized.contains("//")) {
-            sanitized = sanitized.replace("//", "/");
-        }
+        sanitized = sanitized.replaceAll("//+", "/");
 
         if (sanitized.startsWith("./")) {
             sanitized = sanitized.substring(2);

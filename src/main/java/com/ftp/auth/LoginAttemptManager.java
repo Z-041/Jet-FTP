@@ -50,7 +50,7 @@ public class LoginAttemptManager {
 
     public void recordFailedAttempt(InetAddress address) {
         String ip = address.getHostAddress();
-        attempts.compute(ip, (key, existing) -> {
+        LoginAttempt result = attempts.compute(ip, (key, existing) -> {
             if (existing == null) {
                 return new LoginAttempt(1, System.currentTimeMillis());
             }
@@ -59,8 +59,7 @@ public class LoginAttemptManager {
             return existing;
         });
 
-        LoginAttempt attempt = attempts.get(ip);
-        if (attempt.getFailedAttempts() >= maxAttempts) {
+        if (result != null && result.getFailedAttempts() >= maxAttempts) {
             logger.warn("IP blocked due to multiple failed login attempts: " + ip);
         }
     }

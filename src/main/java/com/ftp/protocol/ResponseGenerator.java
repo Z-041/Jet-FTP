@@ -21,16 +21,13 @@ public class ResponseGenerator {
     
     // 2xx - Success
     public static final String CODE_200 = "200 Command okay.";
-    public static final String CODE_213 = "213 %s";
     public static final String CODE_214 = "214 Help message.";
     public static final String CODE_215 = "215 UNIX Type: L8";
     public static final String CODE_220 = "220 Service ready for new user.";
     public static final String CODE_221 = "221 Service closing control connection.";
     public static final String CODE_226 = "226 Closing data connection.";
-    public static final String CODE_227 = "227 Entering Passive Mode (%s).";
     public static final String CODE_230 = "230 User logged in, proceed.";
     public static final String CODE_250 = "250 Requested file action okay, completed.";
-    public static final String CODE_257 = "257 \"%s\" created.";
     
     // 3xx - Need more information
     public static final String CODE_331 = "331 User name okay, need password.";
@@ -75,6 +72,10 @@ public class ResponseGenerator {
 
     public static String mdtm(String timestamp) {
         return "213 " + timestamp;
+    }
+
+    public static String created(String path) {
+        return String.format("257 \"%s\" created.", path);
     }
 
     public static String passMode(String address) {

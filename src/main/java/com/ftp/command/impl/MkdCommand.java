@@ -31,7 +31,7 @@ public class MkdCommand extends BaseCommandHandler {
         if (newDir.mkdirs()) {
             String relativePath = computeRelativePath(session.getFileSystemContext().getRootDirectory(), newDir);
             logger.info("Created directory: " + newDir.getAbsolutePath());
-            sendResponse(out, String.format(ResponseGenerator.CODE_257, relativePath));
+            sendResponse(out, ResponseGenerator.created(relativePath));
         } else {
             sendResponse(out, ResponseGenerator.CODE_550);
         }

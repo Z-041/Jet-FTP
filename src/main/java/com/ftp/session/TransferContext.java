@@ -7,17 +7,41 @@ public class TransferContext {
     private String passiveAddress;
     private String activeAddress;
     private int activePort;
-    private int activeProtocol;
+    private Protocol activeProtocol;
     private long restartPosition;
 
     public enum TransferType {
         ASCII, BINARY
     }
 
+    public enum Protocol {
+        IPv4(1),
+        IPv6(2);
+
+        private final int value;
+
+        Protocol(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static Protocol fromValue(int value) {
+            for (Protocol protocol : values()) {
+                if (protocol.value == value) {
+                    return protocol;
+                }
+            }
+            throw new IllegalArgumentException("Protocol must be 1 (IPv4) or 2 (IPv6)");
+        }
+    }
+
     public TransferContext() {
         this.transferType = TransferType.ASCII;
         this.passiveMode = false;
-        this.activeProtocol = 1;
+        this.activeProtocol = Protocol.IPv4;
     }
 
     public TransferType getTransferType() {
@@ -68,16 +92,12 @@ public class TransferContext {
         this.activePort = activePort;
     }
 
-    public int getActiveProtocol() {
+    public Protocol getActiveProtocol() {
         return activeProtocol;
     }
 
-    public void setActiveProtocol(int activeProtocol) {
-        if (activeProtocol == 1 || activeProtocol == 2) {
-            this.activeProtocol = activeProtocol;
-        } else {
-            throw new IllegalArgumentException("Protocol must be 1 (IPv4) or 2 (IPv6)");
-        }
+    public void setActiveProtocol(Protocol activeProtocol) {
+        this.activeProtocol = activeProtocol;
     }
 
     public long getRestartPosition() {
@@ -94,7 +114,7 @@ public class TransferContext {
         this.passiveAddress = null;
         this.activeAddress = null;
         this.activePort = 0;
-        this.activeProtocol = 1;
+        this.activeProtocol = Protocol.IPv4;
         this.restartPosition = 0;
     }
 }

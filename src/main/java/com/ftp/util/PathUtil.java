@@ -4,31 +4,37 @@ import java.io.File;
 import java.util.Objects;
 
 public class PathUtil {
-    
+
     public static final String FTP_SEPARATOR = "/";
-    
+
     private PathUtil() {
     }
-    
+
+    private static String normalizeSeparators(String path) {
+        if (path == null) {
+            return null;
+        }
+        return path.replace('\\', '/').replaceAll("/+", "/");
+    }
+
     public static String toFtpPath(String localPath) {
         if (localPath == null) {
             return FTP_SEPARATOR;
         }
         return localPath.replace(File.separatorChar, '/');
     }
-    
+
     public static String normalizeFtpPath(String path) {
         if (path == null || path.isEmpty()) {
             return FTP_SEPARATOR;
         }
-        String normalized = path.replace('\\', '/');
-        normalized = normalized.replaceAll("/+", "/");
+        String normalized = normalizeSeparators(path);
         if (!normalized.startsWith(FTP_SEPARATOR)) {
             normalized = FTP_SEPARATOR + normalized;
         }
         return normalized;
     }
-    
+
     public static String toLocalPath(String ftpPath) {
         if (ftpPath == null) {
             return "";

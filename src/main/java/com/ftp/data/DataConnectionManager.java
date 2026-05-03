@@ -10,14 +10,15 @@ import com.ftp.session.TransferContext;
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DataConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(DataConnectionManager.class);
 
     private ServerSocket passiveServerSocket;
-    private final Random random = new Random();
     private final AddressSelector addressSelector;
     private final ReentrantLock passiveSocketLock;
 
@@ -143,7 +144,7 @@ public class DataConnectionManager {
             int maxAttempts = Math.min(range, 100);
 
             for (int i = 0; i < maxAttempts; i++) {
-                int port = portMin + random.nextInt(range);
+                int port = portMin + ThreadLocalRandom.current().nextInt(range);
                 try (ServerSocket testSocket = new ServerSocket(port)) {
                     testSocket.setReuseAddress(true);
                     return port;

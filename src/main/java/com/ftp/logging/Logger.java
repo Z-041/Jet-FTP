@@ -10,8 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -22,7 +22,7 @@ public class Logger {
 
     private volatile LogLevel currentLevel;
     private volatile String logFilePath;
-    private final ThreadLocal<SimpleDateFormat> dateFormat;
+    private final DateTimeFormatter dateFormatter;
     private final List<LogListener> listeners;
     private final long maxFileSize;
     private final int maxBackupIndex;
@@ -38,8 +38,7 @@ public class Logger {
         Config config = ConfigManager.getInstance().getConfig();
         this.currentLevel = LogLevel.fromString(config.getLogLevel());
         this.logFilePath = config.getLogFilePath();
-        this.dateFormat = ThreadLocal.withInitial(() -> 
-            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
+        this.dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         this.listeners = new CopyOnWriteArrayList<>();
         this.maxFileSize = DEFAULT_MAX_FILE_SIZE;
         this.maxBackupIndex = DEFAULT_MAX_BACKUP_INDEX;
@@ -140,7 +139,7 @@ public class Logger {
     }
 
     private String formatLogMessage(LogLevel level, String message) {
-        String timestamp = dateFormat.get().format(new Date());
+        String timestamp = LocalDateTime.now().format(dateFormatter);
         return String.format("[%s] [%s] %s", timestamp, level, message);
     }
 
