@@ -184,12 +184,16 @@ public class DataConnectionManager {
         }
     }
 
-    public void sendFile(Socket socket, File file, TransferContext.TransferType transferType, com.ftp.util.BandwidthLimiter limiter) throws IOException {
+    public void sendFile(Socket socket, File file, TransferContext.TransferType transferType, long restartPosition, com.ftp.util.BandwidthLimiter limiter) throws IOException {
         try (OutputStream out = socket.getOutputStream()) {
             if (transferType == TransferContext.TransferType.ASCII) {
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file));
                      BufferedReader reader = new BufferedReader(new InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
                      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
+                    // 对于ASCII模式，我们需要跳过指定数量的字节
+                    if (restartPosition > 0) {
+                        in.skip(restartPosition);
+                    }
                     String line;
                     while ((line = reader.readLine()) != null) {
                         String lineData = line + "\r\n";
@@ -201,6 +205,10 @@ public class DataConnectionManager {
                 }
             } else {
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+                    // 对于二进制模式，跳过指定数量的字节
+                    if (restartPosition > 0) {
+                        in.skip(restartPosition);
+                    }
                     byte[] buffer = new byte[8192];
                     int bytesRead;
                     while ((bytesRead = in.read(buffer)) != -1) {
@@ -213,6 +221,10 @@ public class DataConnectionManager {
             }
             out.flush();
         }
+    }
+
+    public void sendFile(Socket socket, File file, TransferContext.TransferType transferType, com.ftp.util.BandwidthLimiter limiter) throws IOException {
+        sendFile(socket, file, transferType, 0, limiter);
     }
 
     public void sendFile(Socket socket, File file, TransferContext.TransferType transferType) throws IOException {

@@ -3,6 +3,8 @@ package com.ftp.ui;
 import com.ftp.config.Config;
 import com.ftp.config.ConfigChangeListener;
 import com.ftp.config.ConfigManager;
+import com.ftp.logging.LogLevel;
+import com.ftp.ui.LogListener;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -16,9 +18,9 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LogPanel extends JPanel {
+public class LogPanel extends JPanel implements LogListener {
 
-    public enum LogLevel {
+    public enum DisplayLogLevel {
         DEBUG(0),
         INFO(1),
         WARN(2),
@@ -26,7 +28,7 @@ public class LogPanel extends JPanel {
 
         private final int level;
 
-        LogLevel(int level) {
+        DisplayLogLevel(int level) {
             this.level = level;
         }
 
@@ -34,7 +36,7 @@ public class LogPanel extends JPanel {
             return level;
         }
 
-        public static LogLevel fromString(String levelStr) {
+        public static DisplayLogLevel fromString(String levelStr) {
             if (levelStr == null) {
                 return INFO;
             }
@@ -45,14 +47,14 @@ public class LogPanel extends JPanel {
             }
         }
 
-        public boolean isEnabledFor(LogLevel minLevel) {
+        public boolean isEnabledFor(DisplayLogLevel minLevel) {
             return this.level >= minLevel.level;
         }
     }
 
     private final JTextPane logTextPane;
     private final StyledDocument logDocument;
-    private final JComboBox<LogLevel> levelFilterComboBox;
+    private final JComboBox<DisplayLogLevel> levelFilterComboBox;
     private final JButton clearButton;
     private final JCheckBox autoScrollCheckBox;
     private final SimpleAttributeSet debugStyle;
@@ -60,7 +62,7 @@ public class LogPanel extends JPanel {
     private final SimpleAttributeSet warnStyle;
     private final SimpleAttributeSet errorStyle;
     private final SimpleDateFormat dateFormat;
-    private LogLevel currentFilterLevel;
+    private DisplayLogLevel currentFilterLevel;
 
     public LogPanel() {
         setLayout(new BorderLayout(0, 0));
@@ -70,7 +72,7 @@ public class LogPanel extends JPanel {
         dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
         Config config = ConfigManager.getInstance().getConfig();
-        currentFilterLevel = LogLevel.fromString(config.getLogLevel());
+        currentFilterLevel = DisplayLogLevel.fromString(config.getLogLevel());
 
         debugStyle = new SimpleAttributeSet();
         StyleConstants.setForeground(debugStyle, UIStyles.TEXT_MUTED);
@@ -112,7 +114,7 @@ public class LogPanel extends JPanel {
         filterLabel.setFont(UIStyles.FONT_SMALL);
         filterLabel.setForeground(UIStyles.TEXT_SECONDARY);
 
-        levelFilterComboBox = new JComboBox<>(LogLevel.values());
+        levelFilterComboBox = new JComboBox<>(DisplayLogLevel.values());
         levelFilterComboBox.setSelectedItem(currentFilterLevel);
         levelFilterComboBox.setFont(UIStyles.FONT_SMALL);
         levelFilterComboBox.setBackground(UIStyles.BG_WHITE);
@@ -146,7 +148,7 @@ public class LogPanel extends JPanel {
             @Override
             public void onConfigChanged(Config oldConfig, Config newConfig) {
                 if (newConfig != null) {
-                    LogLevel newLevel = LogLevel.fromString(newConfig.getLogLevel());
+                    DisplayLogLevel newLevel = DisplayLogLevel.fromString(newConfig.getLogLevel());
                     currentFilterLevel = newLevel;
                     SwingUtilities.invokeLater(() -> {
                         levelFilterComboBox.setSelectedItem(newLevel);
@@ -154,6 +156,21 @@ public class LogPanel extends JPanel {
                 }
             }
         });
+    }
+    
+    @Override
+    public void onLog(com.ftp.logging.LogLevel level, String message, Throwable throwable) {
+        DisplayLogLevel displayLevel = convertLogLevel(level);
+        appendLog(displayLevel, message, throwable);
+    }
+    
+    private DisplayLogLevel convertLogLevel(com.ftp.logging.LogLevel level) {
+        return switch (level) {
+            case DEBUG -> DisplayLogLevel.DEBUG;
+            case INFO -> DisplayLogLevel.INFO;
+            case WARN -> DisplayLogLevel.WARN;
+            case ERROR -> DisplayLogLevel.ERROR;
+        };
     }
 
     private JButton createButton(String text, Color baseColor) {
@@ -188,7 +205,7 @@ public class LogPanel extends JPanel {
 
     private void setupActionListeners() {
         levelFilterComboBox.addActionListener(e -> {
-            currentFilterLevel = (LogLevel) levelFilterComboBox.getSelectedItem();
+            currentFilterLevel = (DisplayLogLevel) levelFilterComboBox.getSelectedItem();
         });
 
         clearButton.addActionListener(e -> clearLogs());
@@ -202,7 +219,7 @@ public class LogPanel extends JPanel {
         }
     }
 
-    public void appendLog(LogLevel level, String message, Throwable throwable) {
+    public void appendLog(DisplayLogLevel level, String message, Throwable throwable) {
         if (!level.isEnabledFor(currentFilterLevel)) {
             return;
         }

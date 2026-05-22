@@ -65,6 +65,16 @@ public class ConfigManager {
     public Config getConfig() {
         return config;
     }
+    
+    /**
+     * 直接设置配置（用于测试）
+     * @param config 新的配置对象
+     */
+    public void setConfig(Config config) {
+        Config oldConfig = this.config;
+        this.config = config;
+        fireConfigChanged(oldConfig, config);
+    }
 
     /**
      * 重新加载默认配置文件

@@ -118,7 +118,8 @@ public class Logger {
 
         String logMessage = formatLogMessage(level, message);
 
-        outputToConsole(level, logMessage, throwable);
+        // 禁用自定义Logger的控制台输出，避免与Logback的CONSOLE Appender重复
+        // outputToConsole(level, logMessage, throwable);
 
         String currentPath = this.logFilePath;
         if (currentPath != null && !currentPath.trim().isEmpty()) {

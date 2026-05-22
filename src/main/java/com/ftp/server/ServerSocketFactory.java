@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 class ServerSocketFactory {
@@ -22,36 +21,37 @@ class ServerSocketFactory {
 
     List<InetAddress> getListenAddresses(Config config) throws IOException {
         List<InetAddress> addresses = new ArrayList<>();
-        String listenInterface = config.getListenInterface();
-
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface ni = interfaces.nextElement();
-
-            if (!ni.isUp()) {
-                continue;
-            }
-
-            if (shouldSkipInterface(ni, listenInterface)) {
-                continue;
-            }
-
-            Enumeration<InetAddress> enumAddresses = ni.getInetAddresses();
-            while (enumAddresses.hasMoreElements()) {
-                InetAddress addr = enumAddresses.nextElement();
-
-                if (isExcludedAddress(addr)) {
-                    continue;
-                }
-
-                addresses.add(addr);
+        
+        String bindAddressStr = config.getBindAddress();
+        
+        // 如果用户明确指定了绑定地址，就只绑定该地址
+        if (!"::".equals(bindAddressStr) && !"0.0.0.0".equals(bindAddressStr)) {
+            try {
+                InetAddress bindAddr = InetAddress.getByName(bindAddressStr);
+                addresses.add(bindAddr);
+                return addresses;
+            } catch (Exception e) {
+                // 如果指定的地址无效，回退到通配符
             }
         }
-
-        if (addresses.isEmpty()) {
-            throw new IOException("No network interfaces available for listening");
+        
+        // 在现代操作系统上，监听IPv6通配符(::)就足够了
+        // 它会同时接受IPv4和IPv6连接
+        try {
+            InetAddress ipv6Wildcard = InetAddress.getByName("::");
+            addresses.add(ipv6Wildcard);
+            return addresses;
+        } catch (Exception e) {
+            // 如果IPv6通配符不可用，就回退到IPv4通配符
         }
-
+        
+        try {
+            InetAddress ipv4Wildcard = InetAddress.getByName("0.0.0.0");
+            addresses.add(ipv4Wildcard);
+        } catch (Exception e) {
+            throw new IOException("Failed to get any wildcard addresses for listening", e);
+        }
+        
         return addresses;
     }
 

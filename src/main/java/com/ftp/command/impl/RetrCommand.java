@@ -44,29 +44,35 @@ public class RetrCommand extends BaseCommandHandler {
             logBuilder.username("anonymous");
         }
 
-        executeWithDataConnection(
-            out,
-            session,
-            dataSocket -> {
-                long txStart = System.currentTimeMillis();
-                session.getDataConnectionManager().sendFile(
-                    dataSocket, file, session.getTransferContext().getTransferType(), session.getBandwidthLimiter());
-                long txDuration = System.currentTimeMillis() - txStart;
+        long restartPosition = session.getTransferContext().getRestartPosition();
+        try {
+            executeWithDataConnection(
+                out,
+                session,
+                dataSocket -> {
+                    long txStart = System.currentTimeMillis();
+                    session.getDataConnectionManager().sendFile(
+                        dataSocket, file, session.getTransferContext().getTransferType(), restartPosition, session.getBandwidthLimiter());
+                    long txDuration = System.currentTimeMillis() - txStart;
 
-                logBuilder.status(TransferLog.TransferStatus.SUCCESS)
-                        .durationMs(txDuration)
-                        .build()
-                        .log();
-            },
-            "File send: " + file.getAbsolutePath(),
-            e -> {
-                long txDuration = System.currentTimeMillis() - startTime;
-                logBuilder.status(TransferLog.TransferStatus.FAILED)
-                        .durationMs(txDuration)
-                        .build()
-                        .log();
-            }
-        );
+                    logBuilder.status(TransferLog.TransferStatus.SUCCESS)
+                            .durationMs(txDuration)
+                            .build()
+                            .log();
+                },
+                "File send: " + file.getAbsolutePath(),
+                e -> {
+                    long txDuration = System.currentTimeMillis() - startTime;
+                    logBuilder.status(TransferLog.TransferStatus.FAILED)
+                            .durationMs(txDuration)
+                            .build()
+                            .log();
+                }
+            );
+        } finally {
+            // 重置restart position
+            session.getTransferContext().setRestartPosition(0);
+        }
     }
 
     @Override

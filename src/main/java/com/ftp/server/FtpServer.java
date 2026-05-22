@@ -154,8 +154,24 @@ public class FtpServer {
             }
             
             String protocol = bindAddr instanceof Inet6Address ? "IPv6" : "IPv4";
+            String displayAddr;
+            if (bindAddr instanceof Inet6Address) {
+                String hostAddr = bindAddr.getHostAddress();
+                if ("0:0:0:0:0:0:0:0".equals(hostAddr) || "::".equals(hostAddr)) {
+                    displayAddr = "[::]";
+                } else {
+                    displayAddr = "[" + hostAddr + "]";
+                }
+            } else {
+                String hostAddr = bindAddr.getHostAddress();
+                if ("0.0.0.0".equals(hostAddr)) {
+                    displayAddr = "0.0.0.0";
+                } else {
+                    displayAddr = hostAddr;
+                }
+            }
             logger.info("Starting single-stack server (" + protocol + ") on " + 
-                       bindAddr.getHostAddress() + ":" + port);
+                       displayAddr + ":" + port);
             
             new Thread(() -> acceptConnections(ss), "FTP-Acceptor-" + protocol).start();
             
@@ -182,8 +198,25 @@ public class FtpServer {
                 String protocol = addr instanceof Inet6Address ? "IPv6" : "IPv4";
                 String ifaceName = socketFactory.getInterfaceName(addr);
                 
+                String displayAddr;
+                if (addr instanceof Inet6Address) {
+                    String hostAddr = addr.getHostAddress();
+                    if ("0:0:0:0:0:0:0:0".equals(hostAddr) || "::".equals(hostAddr)) {
+                        displayAddr = "[::]";
+                    } else {
+                        displayAddr = "[" + hostAddr + "]";
+                    }
+                } else {
+                    String hostAddr = addr.getHostAddress();
+                    if ("0.0.0.0".equals(hostAddr)) {
+                        displayAddr = "0.0.0.0";
+                    } else {
+                        displayAddr = hostAddr;
+                    }
+                }
+                
                 logger.info("Starting dual-stack listener (" + protocol + ") on " + 
-                           addr.getHostAddress() + ":" + port + 
+                           displayAddr + ":" + port + 
                            (ifaceName != null ? " [" + ifaceName + "]" : ""));
                 
                 final ServerSocket socketRef = ss;

@@ -39,6 +39,9 @@ public class FtpServerUI extends JFrame {
         logPanel = new LogPanel();
         leftControlPanel = new LeftControlPanel(server);
 
+        // 注册日志监听器
+        com.ftp.logging.Logger.getInstance().addLogListener(logPanel);
+        
         server.addConnectionListener(connectionMonitorPanel);
         server.addConnectionListener(leftControlPanel);
 
