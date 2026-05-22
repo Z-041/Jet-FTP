@@ -22,9 +22,9 @@ class ConfigParserTest {
     void testParsePort() {
         assertEquals(21, configParser.parsePort("21"));
         assertEquals(2121, configParser.parsePort("2121"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_PORT, configParser.parsePort(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_PORT, configParser.parsePort(""));
-        assertEquals(FtpConstants.Defaults.DEFAULT_PORT, configParser.parsePort("invalid"));
+        assertEquals(FtpConstants.DEFAULT_PORT, configParser.parsePort(null));
+        assertEquals(FtpConstants.DEFAULT_PORT, configParser.parsePort(""));
+        assertEquals(FtpConstants.DEFAULT_PORT, configParser.parsePort("invalid"));
     }
 
     @Test
@@ -32,9 +32,9 @@ class ConfigParserTest {
     void testParseMaxConnections() {
         assertEquals(10, configParser.parseMaxConnections("10"));
         assertEquals(100, configParser.parseMaxConnections("100"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections(""));
-        assertEquals(FtpConstants.Defaults.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections("invalid"));
+        assertEquals(FtpConstants.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections(null));
+        assertEquals(FtpConstants.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections(""));
+        assertEquals(FtpConstants.DEFAULT_MAX_CONNECTIONS, configParser.parseMaxConnections("invalid"));
     }
 
     @Test
@@ -42,9 +42,9 @@ class ConfigParserTest {
     void testParseTimeout() {
         assertEquals(300, configParser.parseTimeout("300"));
         assertEquals(600, configParser.parseTimeout("600"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout(""));
-        assertEquals(FtpConstants.Defaults.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout("invalid"));
+        assertEquals(FtpConstants.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout(null));
+        assertEquals(FtpConstants.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout(""));
+        assertEquals(FtpConstants.DEFAULT_TIMEOUT_SECONDS, configParser.parseTimeout("invalid"));
     }
 
     @Test
@@ -54,25 +54,25 @@ class ConfigParserTest {
         assertEquals("INFO", configParser.parseLogLevel("INFO"));
         assertEquals("WARN", configParser.parseLogLevel("warn"));
         assertEquals("ERROR", configParser.parseLogLevel("ERROR"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_LOG_LEVEL, configParser.parseLogLevel(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_LOG_LEVEL, configParser.parseLogLevel(""));
-        assertEquals(FtpConstants.Defaults.DEFAULT_LOG_LEVEL, configParser.parseLogLevel("invalid"));
+        assertEquals(FtpConstants.DEFAULT_LOG_LEVEL, configParser.parseLogLevel(null));
+        assertEquals(FtpConstants.DEFAULT_LOG_LEVEL, configParser.parseLogLevel(""));
+        assertEquals(FtpConstants.DEFAULT_LOG_LEVEL, configParser.parseLogLevel("invalid"));
     }
 
     @Test
     @DisplayName("测试日志文件路径解析")
     void testParseLogFilePath() {
         assertEquals("logs/ftp-server.log", configParser.parseLogFilePath("logs/ftp-server.log"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_LOG_FILE_PATH, configParser.parseLogFilePath(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_LOG_FILE_PATH, configParser.parseLogFilePath(""));
+        assertEquals(FtpConstants.DEFAULT_LOG_FILE_PATH, configParser.parseLogFilePath(null));
+        assertEquals(FtpConstants.DEFAULT_LOG_FILE_PATH, configParser.parseLogFilePath(""));
     }
 
     @Test
     @DisplayName("测试根目录解析")
     void testParseRootDirectory() {
         assertEquals("ftp-root", configParser.parseRootDirectory("ftp-root"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_ROOT_DIRECTORY, configParser.parseRootDirectory(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_ROOT_DIRECTORY, configParser.parseRootDirectory(""));
+        assertEquals(FtpConstants.DEFAULT_ROOT_DIRECTORY, configParser.parseRootDirectory(null));
+        assertEquals(FtpConstants.DEFAULT_ROOT_DIRECTORY, configParser.parseRootDirectory(""));
     }
 
     @Test
@@ -196,8 +196,8 @@ class ConfigParserTest {
     void testParseBcryptRounds() {
         assertEquals(12, configParser.parseBcryptRounds("12"));
         assertEquals(10, configParser.parseBcryptRounds("10"));
-        assertEquals(FtpConstants.Defaults.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds(null));
-        assertEquals(FtpConstants.Defaults.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds(""));
-        assertEquals(FtpConstants.Defaults.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds("invalid"));
+        assertEquals(FtpConstants.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds(null));
+        assertEquals(FtpConstants.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds(""));
+        assertEquals(FtpConstants.DEFAULT_BCRYPT_ROUNDS, configParser.parseBcryptRounds("invalid"));
     }
 }

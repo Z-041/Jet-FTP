@@ -19,18 +19,18 @@ class AddressSelector {
     InetAddress selectAddressForClient(InetAddress clientAddress, Config config) throws IOException {
         InetAddress configuredAddr = getConfiguredExternalAddress(clientAddress, config);
         if (configuredAddr != null) {
-            logger.info("Using configured external IP: " + configuredAddr.getHostAddress());
+            logger.info("Using configured external IP: " + formatAddress(configuredAddr));
             return configuredAddr;
         }
 
         if (clientAddress != null) {
-            logger.debug("Client address: " + clientAddress.getHostAddress() + 
+            logger.debug("Client address: " + formatAddress(clientAddress) + 
                          " (SiteLocal: " + clientAddress.isSiteLocalAddress() + 
                          ", LinkLocal: " + clientAddress.isLinkLocalAddress() + ")");
             
             InetAddress subnetMatch = findAddressInSameSubnet(clientAddress);
             if (subnetMatch != null) {
-                logger.info("Found matching subnet address: " + subnetMatch.getHostAddress());
+                logger.info("Found matching subnet address: " + formatAddress(subnetMatch));
                 return subnetMatch;
             }
             
@@ -38,9 +38,131 @@ class AddressSelector {
         }
 
         InetAddress bestAddr = findBestAddressForClient(clientAddress, config);
-        logger.info("Using best available address: " + bestAddr.getHostAddress() + 
-                   " (Client was: " + (clientAddress != null ? clientAddress.getHostAddress() : "unknown") + ")");
+        logger.info("Using best available address: " + formatAddress(bestAddr) + 
+                   " (Client was: " + (clientAddress != null ? formatAddress(clientAddress) : "unknown") + ")");
         return bestAddr;
+    }
+
+    private String formatAddress(InetAddress addr) {
+        if (addr instanceof Inet6Address) {
+            return compressIPv6(addr.getHostAddress());
+        }
+        return addr.getHostAddress();
+    }
+
+    private String compressIPv6(String address) {
+        if (address == null || address.isEmpty()) {
+            return address;
+        }
+
+        try {
+            // Step 1: Split address into parts
+            String[] parts = address.split(":");
+            int nonEmptyCount = 0;
+            
+            // Clean up parts and count non-empty ones
+            for (int i = 0; i < parts.length; i++) {
+                if (parts[i].isEmpty()) {
+                    parts[i] = "";
+                } else {
+                    parts[i] = parts[i].toLowerCase();
+                    nonEmptyCount++;
+                }
+            }
+
+            // Special case for ::1
+            if (address.equals("0:0:0:0:0:0:0:1")) {
+                return "::1";
+            }
+
+            // Special case for ::
+            if (address.equals("0:0:0:0:0:0:0:0")) {
+                return "::";
+            }
+
+            // Step 2: Find the longest run of zeros to replace with ::
+            int maxZeroLength = 0;
+            int maxZeroStart = -1;
+            int currentZeroLength = 0;
+            int currentZeroStart = -1;
+
+            for (int i = 0; i < parts.length; i++) {
+                if ("0".equals(parts[i]) || parts[i].isEmpty()) {
+                    if (currentZeroLength == 0) {
+                        currentZeroStart = i;
+                    }
+                    currentZeroLength++;
+                    if (currentZeroLength > maxZeroLength) {
+                        maxZeroLength = currentZeroLength;
+                        maxZeroStart = currentZeroStart;
+                    }
+                } else {
+                    currentZeroLength = 0;
+                    currentZeroStart = -1;
+                }
+            }
+
+            // Step 3: Build the compressed address
+            StringBuilder sb = new StringBuilder();
+            
+            // If we found a zero sequence to compress
+            if (maxZeroLength >= 2 && maxZeroStart != -1) {
+                boolean needDoubleColon = true;
+                
+                for (int i = 0; i < parts.length; i++) {
+                    if (i >= maxZeroStart && i < maxZeroStart + maxZeroLength) {
+                        if (needDoubleColon) {
+                            sb.append("::");
+                            needDoubleColon = false;
+                        }
+                        continue;
+                    }
+                    
+                    if (sb.length() > 0 && !sb.toString().endsWith("::") && !sb.toString().endsWith(":")) {
+                        sb.append(":");
+                    }
+                    
+                    if (!parts[i].isEmpty()) {
+                        // Remove leading zeros
+                        String part = parts[i];
+                        if (part.length() > 1) {
+                            part = part.replaceFirst("^0+", "");
+                            if (part.isEmpty()) {
+                                part = "0";
+                            }
+                        }
+                        sb.append(part);
+                    }
+                }
+                
+                // Handle case where :: is at the end
+                String result = sb.toString();
+                if (result.endsWith(":") && !result.endsWith("::")) {
+                    result = result.substring(0, result.length() - 1);
+                }
+                
+                return result;
+            }
+
+            // If no compression, just remove leading zeros from each part
+            StringBuilder simple = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                if (!parts[i].isEmpty()) {
+                    if (simple.length() > 0) {
+                        simple.append(":");
+                    }
+                    String part = parts[i].replaceFirst("^0+", "");
+                    if (part.isEmpty()) {
+                        part = "0";
+                    }
+                    simple.append(part);
+                }
+            }
+            return simple.toString();
+            
+        } catch (Exception e) {
+            return address;
+        }
     }
 
     private InetAddress getConfiguredExternalAddress(InetAddress clientAddress, Config config) {

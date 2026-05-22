@@ -60,19 +60,19 @@ public class ConfigValidator {
     }
     
     private static void validateBcryptRounds(int rounds, ValidationResult result) {
-        if (rounds < FtpConstants.Limits.MIN_BCRYPT_ROUNDS || rounds > FtpConstants.Limits.MAX_BCRYPT_ROUNDS) {
+        if (rounds < FtpConstants.LIMIT_MIN_BCRYPT_ROUNDS || rounds > FtpConstants.LIMIT_MAX_BCRYPT_ROUNDS) {
             result.addError(String.format("BCrypt rounds 必须在 %d-%d 之间，当前值：%d",
-                FtpConstants.Limits.MIN_BCRYPT_ROUNDS,
-                FtpConstants.Limits.MAX_BCRYPT_ROUNDS,
+                FtpConstants.LIMIT_MIN_BCRYPT_ROUNDS,
+                FtpConstants.LIMIT_MAX_BCRYPT_ROUNDS,
                 rounds));
         }
     }
 
     private static void validatePort(int port, ValidationResult result) {
-        if (port < FtpConstants.Limits.MIN_PORT || port > FtpConstants.Limits.MAX_PORT) {
+        if (port < FtpConstants.LIMIT_MIN_PORT || port > FtpConstants.LIMIT_MAX_PORT) {
             result.addError(String.format("端口号必须在 %d-%d 之间，当前值：%d",
-                FtpConstants.Limits.MIN_PORT,
-                FtpConstants.Limits.MAX_PORT,
+                FtpConstants.LIMIT_MIN_PORT,
+                FtpConstants.LIMIT_MAX_PORT,
                 port));
             return; // 如果端口号无效，不要尝试创建ServerSocket
         }
@@ -114,19 +114,19 @@ public class ConfigValidator {
     }
 
     private static void validateMaxConnections(int maxConnections, ValidationResult result) {
-        if (maxConnections < FtpConstants.Limits.MIN_MAX_CONNECTIONS || maxConnections > FtpConstants.Limits.MAX_MAX_CONNECTIONS) {
+        if (maxConnections < FtpConstants.LIMIT_MIN_MAX_CONNECTIONS || maxConnections > FtpConstants.LIMIT_MAX_MAX_CONNECTIONS) {
             result.addError(String.format("最大连接数必须在 %d-%d 之间，当前值：%d",
-                FtpConstants.Limits.MIN_MAX_CONNECTIONS,
-                FtpConstants.Limits.MAX_MAX_CONNECTIONS,
+                FtpConstants.LIMIT_MIN_MAX_CONNECTIONS,
+                FtpConstants.LIMIT_MAX_MAX_CONNECTIONS,
                 maxConnections));
         }
     }
 
     private static void validateTimeout(int timeout, ValidationResult result) {
-        if (timeout < FtpConstants.Limits.MIN_TIMEOUT || timeout > FtpConstants.Limits.MAX_TIMEOUT) {
+        if (timeout < FtpConstants.LIMIT_MIN_TIMEOUT || timeout > FtpConstants.LIMIT_MAX_TIMEOUT) {
             result.addError(String.format("超时时间必须在 %d-%d 秒之间，当前值：%d",
-                FtpConstants.Limits.MIN_TIMEOUT,
-                FtpConstants.Limits.MAX_TIMEOUT,
+                FtpConstants.LIMIT_MIN_TIMEOUT,
+                FtpConstants.LIMIT_MAX_TIMEOUT,
                 timeout));
         }
     }
@@ -138,7 +138,7 @@ public class ConfigValidator {
         }
 
         boolean valid = false;
-        for (String level : FtpConstants.LogLevels.VALID_LEVELS) {
+        for (String level : FtpConstants.LOG_LEVELS_VALID) {
             if (level.equalsIgnoreCase(logLevel.trim())) {
                 valid = true;
                 break;
@@ -147,7 +147,7 @@ public class ConfigValidator {
 
         if (!valid) {
             result.addError(String.format("无效的日志级别：%s，有效值为：%s",
-                logLevel, String.join(", ", FtpConstants.LogLevels.VALID_LEVELS)));
+                logLevel, String.join(", ", FtpConstants.LOG_LEVELS_VALID)));
         }
     }
 

@@ -58,6 +58,104 @@ public class DataConnectionManager {
         this.passiveSocketLock = new ReentrantLock();
     }
 
+    private String formatAddress(InetAddress addr) {
+        if (addr instanceof java.net.Inet6Address) {
+            return compressIPv6(addr.getHostAddress());
+        }
+        return addr.getHostAddress();
+    }
+
+    private String compressIPv6(String address) {
+        if (address == null || address.isEmpty()) {
+            return address;
+        }
+
+        try {
+            // Special case for ::1
+            if (address.equals("0:0:0:0:0:0:0:1")) {
+                return "::1";
+            }
+
+            // Special case for ::
+            if (address.equals("0:0:0:0:0:0:0:0")) {
+                return "::";
+            }
+
+            // Split address into parts
+            String[] parts = address.split(":");
+
+            // Find the longest run of zeros
+            int maxZeroLength = 0;
+            int maxZeroStart = -1;
+            int currentZeroLength = 0;
+            int currentZeroStart = -1;
+
+            for (int i = 0; i < parts.length; i++) {
+                if ("0".equals(parts[i]) || parts[i].isEmpty()) {
+                    if (currentZeroLength == 0) {
+                        currentZeroStart = i;
+                    }
+                    currentZeroLength++;
+                    if (currentZeroLength > maxZeroLength) {
+                        maxZeroLength = currentZeroLength;
+                        maxZeroStart = currentZeroStart;
+                    }
+                } else {
+                    currentZeroLength = 0;
+                    currentZeroStart = -1;
+                }
+            }
+
+            // Build the compressed address
+            if (maxZeroLength >= 2 && maxZeroStart != -1) {
+                StringBuilder sb = new StringBuilder();
+                boolean needDoubleColon = true;
+
+                for (int i = 0; i < parts.length; i++) {
+                    if (i >= maxZeroStart && i < maxZeroStart + maxZeroLength) {
+                        if (needDoubleColon) {
+                            sb.append("::");
+                            needDoubleColon = false;
+                        }
+                        continue;
+                    }
+
+                    if (sb.length() > 0 && !sb.toString().endsWith("::") && !sb.toString().endsWith(":")) {
+                        sb.append(":");
+                    }
+
+                    if (!parts[i].isEmpty()) {
+                        String part = parts[i].toLowerCase().replaceFirst("^0+", "");
+                        sb.append(part.isEmpty() ? "0" : part);
+                    }
+                }
+
+                String result = sb.toString();
+                if (result.endsWith(":") && !result.endsWith("::")) {
+                    result = result.substring(0, result.length() - 1);
+                }
+
+                return result;
+            }
+
+            // No compression needed, just remove leading zeros
+            StringBuilder simple = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                if (!parts[i].isEmpty()) {
+                    if (simple.length() > 0) {
+                        simple.append(":");
+                    }
+                    String part = parts[i].toLowerCase().replaceFirst("^0+", "");
+                    simple.append(part.isEmpty() ? "0" : part);
+                }
+            }
+            return simple.toString();
+
+        } catch (Exception e) {
+            return address;
+        }
+    }
+
     public Socket openDataConnection(Session session) throws IOException {
         if (session.getTransferContext().isPassiveMode()) {
             return openPassiveConnection(session);
@@ -84,7 +182,7 @@ public class DataConnectionManager {
                 Socket socket = passiveServerSocket.accept();
                 closePassiveServerSocketInternal();
 
-                logger.info("Passive connection accepted from " + socket.getInetAddress() +
+                logger.info("Passive connection accepted from " + formatAddress(socket.getInetAddress()) +
                             ":" + socket.getPort());
                 return socket;
             } catch (SocketTimeoutException e) {
@@ -126,9 +224,9 @@ public class DataConnectionManager {
             PassiveResult result = new PassiveResult(bindAddr, port, clientIsIPv6);
 
             if (clientIsIPv6) {
-                logger.info("EPSV mode entered (IPv6) on " + bindAddr.getHostAddress() + ":" + port);
+                logger.info("EPSV mode entered (IPv6) on " + formatAddress(bindAddr) + ":" + port);
             } else {
-                logger.info("PASV mode entered (IPv4) on " + bindAddr.getHostAddress() + ":" + port);
+                logger.info("PASV mode entered (IPv4) on " + formatAddress(bindAddr) + ":" + port);
             }
 
             return result;

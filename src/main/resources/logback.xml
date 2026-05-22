@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- 控制台输出 -->
+    <!-- 控制台输出 - 使用异步处理 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>[%d{HH:mm:ss.SSS}] [%level] [%logger{36}] %msg%n</pattern>
@@ -8,12 +8,65 @@
         </encoder>
     </appender>
 
-    <!-- UI输出，将日志转发到我们自定义的Logger -->
+    <!-- 文件输出 - 使用异步处理和滚动策略 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/ftp-server.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/ftp-server.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{HH:mm:ss.SSS}] [%level] [%logger{36}] %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- UI输出 - 使用异步处理 -->
     <appender name="UI" class="com.ftp.logging.UILogbackAppender" />
+
+    <!-- 异步包装器 - 减少主线程阻塞 -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="CONSOLE" />
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <appender name="ASYNC_UI" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="UI" />
+    </appender>
+
+    <!-- 数据传输相关的 logger - 降低日志级别 -->
+    <logger name="com.ftp.data" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_CONSOLE" />
+        <appender-ref ref="ASYNC_FILE" />
+        <appender-ref ref="ASYNC_UI" />
+    </logger>
+
+    <!-- 带宽限制器 logger - 降低日志级别 -->
+    <logger name="com.ftp.util" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_CONSOLE" />
+        <appender-ref ref="ASYNC_FILE" />
+        <appender-ref ref="ASYNC_UI" />
+    </logger>
 
     <!-- Root logger配置 -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="UI" />
+        <appender-ref ref="ASYNC_CONSOLE" />
+        <appender-ref ref="ASYNC_FILE" />
+        <appender-ref ref="ASYNC_UI" />
     </root>
 </configuration>

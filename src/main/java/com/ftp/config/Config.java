@@ -23,6 +23,8 @@ public class Config {
     private final String ipv6ExternalIp;
     private final boolean preferIPv6;
     private final int bcryptRounds;
+    private final boolean detailedTransferLog;
+    private final int logQueueSize;
 
     private Config(Builder builder) {
         this.port = builder.port;
@@ -45,6 +47,8 @@ public class Config {
         this.ipv6ExternalIp = Objects.requireNonNull(builder.ipv6ExternalIp, "IPv6 external IP cannot be null");
         this.preferIPv6 = builder.preferIPv6;
         this.bcryptRounds = builder.bcryptRounds;
+        this.detailedTransferLog = builder.detailedTransferLog;
+        this.logQueueSize = builder.logQueueSize;
     }
 
     public static Builder builder() {
@@ -72,6 +76,8 @@ public class Config {
         private String ipv6ExternalIp = "auto";
         private boolean preferIPv6 = false;
         private int bcryptRounds = 12;
+        private boolean detailedTransferLog = false;
+        private int logQueueSize = 512;
 
         public Builder port(int port) {
             this.port = port;
@@ -173,6 +179,16 @@ public class Config {
             return this;
         }
 
+        public Builder detailedTransferLog(boolean detailedTransferLog) {
+            this.detailedTransferLog = detailedTransferLog;
+            return this;
+        }
+
+        public Builder logQueueSize(int logQueueSize) {
+            this.logQueueSize = logQueueSize;
+            return this;
+        }
+
         public Config build() {
             return new Config(this);
         }
@@ -198,6 +214,8 @@ public class Config {
     public String getIpv6ExternalIp() { return ipv6ExternalIp; }
     public boolean isPreferIPv6() { return preferIPv6; }
     public int getBcryptRounds() { return bcryptRounds; }
+    public boolean isDetailedTransferLog() { return detailedTransferLog; }
+    public int getLogQueueSize() { return logQueueSize; }
 
     @Override
     public String toString() {

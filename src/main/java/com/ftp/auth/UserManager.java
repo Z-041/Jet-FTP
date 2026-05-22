@@ -33,9 +33,50 @@ public class UserManager {
 
     private void loadUsers() {
         userFileHandler.loadUsers(users);
+        ensureDefaultUsers();
+    }
 
-        if (users.isEmpty()) {
-            initializeDefaultUsers();
+    private void ensureDefaultUsers() {
+        Config config = ConfigManager.getInstance().getConfig();
+        String rootDirectory = config.getRootDirectory();
+        boolean needsSave = false;
+
+        // 确保默认 ftp 用户存在
+        if (!users.containsKey("ftp")) {
+            String hashedPassword = BCrypt.hashpw("ftp", BCrypt.gensalt(bcryptRounds));
+            User defaultUser = new User("ftp", hashedPassword, rootDirectory);
+            users.put("ftp", defaultUser);
+            logger.info("Default user created: ftp/ftp");
+            needsSave = true;
+        } else {
+            // 更新现有 ftp 用户的根目录为当前配置
+            User existingFtpUser = users.get("ftp");
+            if (!existingFtpUser.getHomeDirectory().equals(rootDirectory)) {
+                User updatedUser = new User("ftp", existingFtpUser.getPasswordHash(), rootDirectory);
+                users.put("ftp", updatedUser);
+                logger.info("Updated default user root directory: ftp");
+                needsSave = true;
+            }
+        }
+
+        // 确保匿名用户存在
+        if (!users.containsKey("anonymous")) {
+            User anonymousUser = new User("anonymous", "", rootDirectory).withAnonymous(true);
+            users.put("anonymous", anonymousUser);
+            logger.info("Anonymous user created: anonymous/<any password>");
+            needsSave = true;
+        } else {
+            // 更新现有匿名用户的根目录为当前配置，并确保其被标记为匿名
+            User existingAnonymousUser = users.get("anonymous");
+            if (!existingAnonymousUser.getHomeDirectory().equals(rootDirectory) || !existingAnonymousUser.isAnonymous()) {
+                User updatedUser = new User("anonymous", "", rootDirectory).withAnonymous(true);
+                users.put("anonymous", updatedUser);
+                logger.info("Updated anonymous user root directory/anonymous flag");
+                needsSave = true;
+            }
+        }
+
+        if (needsSave) {
             saveUsers();
         }
     }

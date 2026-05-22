@@ -1,5 +1,6 @@
 package com.ftp.logging;
 
+import com.ftp.config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,17 +91,38 @@ public class TransferLog {
     }
 
     public void log() {
-        String logMessage = formatLogMessage();
-        switch (status) {
-            case SUCCESS:
-                logger.info(logMessage);
-                break;
-            case FAILED:
-                logger.error(logMessage);
-                break;
-            case CANCELLED:
-                logger.warn(logMessage);
-                break;
+        boolean detailed = false;
+        try {
+            detailed = ConfigManager.getInstance().getConfig().isDetailedTransferLog();
+        } catch (Exception e) {
+            // Ignore configuration issue
+        }
+        
+        // Always log failed and cancelled transfers
+        if (status != TransferStatus.SUCCESS) {
+            String logMessage = formatLogMessage();
+            switch (status) {
+                case FAILED:
+                    logger.error(logMessage);
+                    break;
+                case CANCELLED:
+                    logger.warn(logMessage);
+                    break;
+            }
+            return;
+        }
+        
+        // For successful transfers, check if detailed logging is enabled
+        if (detailed) {
+            String logMessage = formatLogMessage();
+            logger.info(logMessage);
+        } else {
+            // Simple log format for success
+            String simpleMsg = String.format("%s %s completed: %s", 
+                transferType == TransferType.DOWNLOAD ? "Download" : "Upload",
+                username,
+                fileName);
+            logger.info(simpleMsg);
         }
     }
 
