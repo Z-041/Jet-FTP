@@ -43,12 +43,22 @@ public final class FtpConstants {
         public static final String SERVER_ROOT_DIRECTORY = "server.rootDirectory";
         public static final String SERVER_MAX_CONNECTIONS = "server.maxConnections";
         public static final String SERVER_TIMEOUT_SECONDS = "server.timeoutSeconds";
+        public static final String SERVER_THREADPOOL_CORE_SIZE = "server.threadPool.coreSize";
+        public static final String SERVER_THREADPOOL_KEEP_ALIVE_SECONDS = "server.threadPool.keepAliveSeconds";
+        public static final String SERVER_THREADPOOL_QUEUE_CAPACITY = "server.threadPool.queueCapacity";
+        public static final String SERVER_BIND_ADDRESS = "server.bindAddress";
+        public static final String SERVER_DUAL_STACK_ENABLED = "server.dualStackEnabled";
+        public static final String SERVER_LISTEN_INTERFACE = "server.listenInterface";
+        public static final String SERVER_PREFER_IPV6 = "server.preferIPv6";
         public static final String LOG_LEVEL = "log.level";
         public static final String LOG_FILE_PATH = "log.filePath";
         public static final String PASSIVE_MODE_EXTERNAL_IP = "passiveMode.externalIp";
         public static final String PASSIVE_MODE_PORT_MIN = "passiveMode.portMin";
         public static final String PASSIVE_MODE_PORT_MAX = "passiveMode.portMax";
         public static final String PASSIVE_MODE_CONNECTION_TIMEOUT = "passiveMode.connectionTimeout";
+        public static final String PASSIVE_MODE_IPV4_EXTERNAL_IP = "passiveMode.ipv4ExternalIp";
+        public static final String PASSIVE_MODE_IPV6_EXTERNAL_IP = "passiveMode.ipv6ExternalIp";
+        public static final String SECURITY_BCRYPT_ROUNDS = "security.bcryptRounds";
     }
 
     public static final class ConfigFile {

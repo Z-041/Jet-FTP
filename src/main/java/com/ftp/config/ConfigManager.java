@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ConfigManager {
 
-    private Config config;
+    private volatile Config config;
     private final List<ConfigChangeListener> listeners;
     private final ConfigParser configParser;
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
@@ -115,20 +115,26 @@ public class ConfigManager {
      * @return Config 配置对象
      */
     private Config buildConfig(Properties properties) {
-        int port = configParser.parsePort(properties.getProperty("server.port"));
-        String rootDirectory = configParser.parseRootDirectory(properties.getProperty("server.rootDirectory"));
-        int maxConnections = configParser.parseMaxConnections(properties.getProperty("server.maxConnections"));
-        int timeoutSeconds = configParser.parseTimeout(properties.getProperty("server.timeoutSeconds"));
-        String logLevel = configParser.parseLogLevel(properties.getProperty("log.level"));
-        String logFilePath = configParser.parseLogFilePath(properties.getProperty("log.filePath"));
-        int threadPoolCoreSize = configParser.parseThreadPoolCoreSize(properties.getProperty("server.threadPool.coreSize"));
-        int threadPoolKeepAliveSeconds = configParser.parseThreadPoolKeepAliveSeconds(properties.getProperty("server.threadPool.keepAliveSeconds"));
-        int threadPoolQueueCapacity = configParser.parseThreadPoolQueueCapacity(properties.getProperty("server.threadPool.queueCapacity"));
-        String passiveModeExternalIp = configParser.parsePassiveModeExternalIp(properties.getProperty("passiveMode.externalIp"));
-        int passiveModePortMin = configParser.parsePassiveModePortMin(properties.getProperty("passiveMode.portMin"));
-        int passiveModePortMax = configParser.parsePassiveModePortMax(properties.getProperty("passiveMode.portMax"));
-        int passiveModeConnectionTimeout = configParser.parsePassiveModeConnectionTimeout(properties.getProperty("passiveMode.connectionTimeout"));
-        int bcryptRounds = configParser.parseBcryptRounds(properties.getProperty("security.bcryptRounds"));
+        int port = configParser.parsePort(properties.getProperty(FtpConstants.ConfigKeys.SERVER_PORT));
+        String rootDirectory = configParser.parseRootDirectory(properties.getProperty(FtpConstants.ConfigKeys.SERVER_ROOT_DIRECTORY));
+        int maxConnections = configParser.parseMaxConnections(properties.getProperty(FtpConstants.ConfigKeys.SERVER_MAX_CONNECTIONS));
+        int timeoutSeconds = configParser.parseTimeout(properties.getProperty(FtpConstants.ConfigKeys.SERVER_TIMEOUT_SECONDS));
+        String logLevel = configParser.parseLogLevel(properties.getProperty(FtpConstants.ConfigKeys.LOG_LEVEL));
+        String logFilePath = configParser.parseLogFilePath(properties.getProperty(FtpConstants.ConfigKeys.LOG_FILE_PATH));
+        int threadPoolCoreSize = configParser.parseThreadPoolCoreSize(properties.getProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_CORE_SIZE));
+        int threadPoolKeepAliveSeconds = configParser.parseThreadPoolKeepAliveSeconds(properties.getProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_KEEP_ALIVE_SECONDS));
+        int threadPoolQueueCapacity = configParser.parseThreadPoolQueueCapacity(properties.getProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_QUEUE_CAPACITY));
+        String bindAddress = configParser.parseBindAddress(properties.getProperty(FtpConstants.ConfigKeys.SERVER_BIND_ADDRESS));
+        boolean dualStackEnabled = configParser.parseDualStackEnabled(properties.getProperty(FtpConstants.ConfigKeys.SERVER_DUAL_STACK_ENABLED));
+        String listenInterface = configParser.parseListenInterface(properties.getProperty(FtpConstants.ConfigKeys.SERVER_LISTEN_INTERFACE));
+        String ipv4ExternalIp = configParser.parseIpv4ExternalIp(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_IPV4_EXTERNAL_IP));
+        String ipv6ExternalIp = configParser.parseIpv6ExternalIp(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_IPV6_EXTERNAL_IP));
+        boolean preferIPv6 = configParser.parsePreferIPv6(properties.getProperty(FtpConstants.ConfigKeys.SERVER_PREFER_IPV6));
+        String passiveModeExternalIp = configParser.parsePassiveModeExternalIp(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_EXTERNAL_IP));
+        int passiveModePortMin = configParser.parsePassiveModePortMin(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_PORT_MIN));
+        int passiveModePortMax = configParser.parsePassiveModePortMax(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_PORT_MAX));
+        int passiveModeConnectionTimeout = configParser.parsePassiveModeConnectionTimeout(properties.getProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_CONNECTION_TIMEOUT));
+        int bcryptRounds = configParser.parseBcryptRounds(properties.getProperty(FtpConstants.ConfigKeys.SECURITY_BCRYPT_ROUNDS));
 
         return Config.builder()
             .port(port)
@@ -140,6 +146,12 @@ public class ConfigManager {
             .threadPoolCoreSize(threadPoolCoreSize)
             .threadPoolKeepAliveSeconds(threadPoolKeepAliveSeconds)
             .threadPoolQueueCapacity(threadPoolQueueCapacity)
+            .bindAddress(bindAddress)
+            .dualStackEnabled(dualStackEnabled)
+            .listenInterface(listenInterface)
+            .ipv4ExternalIp(ipv4ExternalIp)
+            .ipv6ExternalIp(ipv6ExternalIp)
+            .preferIPv6(preferIPv6)
             .passiveModeExternalIp(passiveModeExternalIp)
             .passiveModePortMin(passiveModePortMin)
             .passiveModePortMax(passiveModePortMax)
@@ -179,9 +191,13 @@ public class ConfigManager {
         properties.setProperty(FtpConstants.ConfigKeys.SERVER_ROOT_DIRECTORY, config.getRootDirectory());
         properties.setProperty(FtpConstants.ConfigKeys.SERVER_MAX_CONNECTIONS, String.valueOf(config.getMaxConnections()));
         properties.setProperty(FtpConstants.ConfigKeys.SERVER_TIMEOUT_SECONDS, String.valueOf(config.getTimeoutSeconds()));
-        properties.setProperty("server.threadPool.coreSize", String.valueOf(config.getThreadPoolCoreSize()));
-        properties.setProperty("server.threadPool.keepAliveSeconds", String.valueOf(config.getThreadPoolKeepAliveSeconds()));
-        properties.setProperty("server.threadPool.queueCapacity", String.valueOf(config.getThreadPoolQueueCapacity()));
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_CORE_SIZE, String.valueOf(config.getThreadPoolCoreSize()));
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_KEEP_ALIVE_SECONDS, String.valueOf(config.getThreadPoolKeepAliveSeconds()));
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_THREADPOOL_QUEUE_CAPACITY, String.valueOf(config.getThreadPoolQueueCapacity()));
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_BIND_ADDRESS, config.getBindAddress());
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_DUAL_STACK_ENABLED, String.valueOf(config.isDualStackEnabled()));
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_LISTEN_INTERFACE, config.getListenInterface());
+        properties.setProperty(FtpConstants.ConfigKeys.SERVER_PREFER_IPV6, String.valueOf(config.isPreferIPv6()));
         properties.setProperty(FtpConstants.ConfigKeys.LOG_LEVEL, config.getLogLevel());
         properties.setProperty(FtpConstants.ConfigKeys.LOG_FILE_PATH, config.getLogFilePath());
         properties.setProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_EXTERNAL_IP, 
@@ -192,6 +208,9 @@ public class ConfigManager {
             String.valueOf(config.getPassiveModePortMax()));
         properties.setProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_CONNECTION_TIMEOUT, 
             String.valueOf(config.getPassiveModeConnectionTimeout()));
+        properties.setProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_IPV4_EXTERNAL_IP, config.getIpv4ExternalIp());
+        properties.setProperty(FtpConstants.ConfigKeys.PASSIVE_MODE_IPV6_EXTERNAL_IP, config.getIpv6ExternalIp());
+        properties.setProperty(FtpConstants.ConfigKeys.SECURITY_BCRYPT_ROUNDS, String.valueOf(config.getBcryptRounds()));
 
         try (OutputStream outputStream = new FileOutputStream(configFilePath)) {
             properties.store(outputStream, FtpConstants.ConfigFile.CONFIG_DESCRIPTION);

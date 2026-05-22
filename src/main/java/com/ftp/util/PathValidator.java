@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+
 
 public class PathValidator {
     private static final Logger logger = LoggerFactory.getLogger(PathValidator.class);
@@ -39,15 +41,18 @@ public class PathValidator {
             return false;
         }
 
-        String originalPath = targetFile.getPath();
-        if (originalPath.contains("..")) {
-            return false;
-        }
-
         try {
+            // 首先检查原始路径中是否有路径遍历的迹象
+            String originalPath = targetFile.getPath();
+            if (originalPath.contains("..") || originalPath.contains("../") || originalPath.contains("..\\")) {
+                logger.warn("Potential path traversal detected in original path: {}", originalPath);
+                return false;
+            }
+
             Path rootPath = rootDir.toPath().toAbsolutePath().normalize();
             Path targetPath = targetFile.toPath().toAbsolutePath().normalize();
 
+            // 同时检查规范化后的路径是否在根目录内
             return isSubpath(rootPath, targetPath);
         } catch (Exception e) {
             logger.error("Error checking path validity", e);
@@ -56,18 +61,17 @@ public class PathValidator {
     }
 
     private static boolean isSubpath(Path root, Path target) {
-        String rootStr = root.toString().replace('\\', '/');
-        String targetStr = target.toString().replace('\\', '/');
-
-        if (targetStr.equals(rootStr)) {
-            return true;
+        try {
+            if (Files.exists(root) && Files.exists(target)) {
+                if (Files.isSameFile(root, target)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Files.isSameFile check failed, using path startsWith instead", e);
         }
-
-        if (!targetStr.startsWith(rootStr + "/")) {
-            return false;
-        }
-
-        return true;
+        
+        return target.startsWith(root);
     }
 
     private static void validateRootDirectory(File rootDir) throws SecurityException {

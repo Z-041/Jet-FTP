@@ -20,11 +20,52 @@ public class ConfigValidator {
         validateRootDirectory(config.getRootDirectory(), result);
         validateMaxConnections(config.getMaxConnections(), result);
         validateTimeout(config.getTimeoutSeconds(), result);
+        validateThreadPoolConfig(config, result);
+        validateBindAddress(config.getBindAddress(), result);
         validateLogLevel(config.getLogLevel(), result);
         validateLogFilePath(config.getLogFilePath(), result);
         validatePassiveModeConfig(config, result);
+        validateBcryptRounds(config.getBcryptRounds(), result);
 
         return result;
+    }
+    
+    private static void validateThreadPoolConfig(Config config, ValidationResult result) {
+        int coreSize = config.getThreadPoolCoreSize();
+        int keepAliveSeconds = config.getThreadPoolKeepAliveSeconds();
+        int queueCapacity = config.getThreadPoolQueueCapacity();
+        
+        if (coreSize < 1) {
+            result.addError(String.format("线程池核心大小必须大于0，当前值：%d", coreSize));
+        }
+        
+        if (keepAliveSeconds < 1) {
+            result.addError(String.format("线程池保持时间必须大于0，当前值：%d", keepAliveSeconds));
+        }
+        
+        if (queueCapacity < 1) {
+            result.addError(String.format("线程池队列容量必须大于0，当前值：%d", queueCapacity));
+        }
+    }
+    
+    private static void validateBindAddress(String bindAddress, ValidationResult result) {
+        if (bindAddress == null || bindAddress.trim().isEmpty()) {
+            result.addError("绑定地址不能为空");
+            return;
+        }
+        
+        if (bindAddress.contains("\0")) {
+            result.addError("绑定地址包含非法字符");
+        }
+    }
+    
+    private static void validateBcryptRounds(int rounds, ValidationResult result) {
+        if (rounds < FtpConstants.Limits.MIN_BCRYPT_ROUNDS || rounds > FtpConstants.Limits.MAX_BCRYPT_ROUNDS) {
+            result.addError(String.format("BCrypt rounds 必须在 %d-%d 之间，当前值：%d",
+                FtpConstants.Limits.MIN_BCRYPT_ROUNDS,
+                FtpConstants.Limits.MAX_BCRYPT_ROUNDS,
+                rounds));
+        }
     }
 
     private static void validatePort(int port, ValidationResult result) {
@@ -33,6 +74,7 @@ public class ConfigValidator {
                 FtpConstants.Limits.MIN_PORT,
                 FtpConstants.Limits.MAX_PORT,
                 port));
+            return; // 如果端口号无效，不要尝试创建ServerSocket
         }
 
         try {

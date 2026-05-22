@@ -65,6 +65,48 @@ class ConfigParser {
         return parseIntPositive(value, 100, "thread pool queue capacity");
     }
 
+    String parseBindAddress(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "::";
+        }
+        return value.trim();
+    }
+
+    boolean parseDualStackEnabled(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return true;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
+
+    String parseListenInterface(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "auto";
+        }
+        return value.trim();
+    }
+
+    String parseIpv4ExternalIp(String value) {
+        if (value == null || value.trim().isEmpty() || "auto".equalsIgnoreCase(value.trim())) {
+            return "auto";
+        }
+        return value.trim();
+    }
+
+    String parseIpv6ExternalIp(String value) {
+        if (value == null || value.trim().isEmpty() || "auto".equalsIgnoreCase(value.trim())) {
+            return "auto";
+        }
+        return value.trim();
+    }
+
+    boolean parsePreferIPv6(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
+
     String parsePassiveModeExternalIp(String value) {
         if (value == null || value.trim().isEmpty() || "auto".equalsIgnoreCase(value.trim())) {
             return null;

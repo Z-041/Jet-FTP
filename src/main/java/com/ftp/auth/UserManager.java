@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UserManager {
     private static final String USERS_FILE = "users.dat";
@@ -21,7 +22,7 @@ public class UserManager {
     }
 
     private UserManager() {
-        this.users = new HashMap<>();
+        this.users = new ConcurrentHashMap<>();
         this.logger = LoggerFactory.getLogger(UserManager.class);
         this.userFileHandler = new UserFileHandler(USERS_FILE);
         this.bcryptRounds = ConfigManager.getInstance().getConfig().getBcryptRounds();
