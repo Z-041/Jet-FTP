@@ -1,6 +1,7 @@
 package com.ftp.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class PathUtil {
@@ -60,6 +61,39 @@ public class PathUtil {
             return false;
         } catch (Exception e) {
             return false;
+        }
+    }
+    
+    /**
+     * 计算相对于根目录的 FTP 路径
+     * @param rootDir 根目录
+     * @param targetFile 目标文件/目录
+     * @return 以 / 开头的 FTP 相对路径
+     */
+    public static String computeFtpRelativePath(File rootDir, File targetFile) {
+        try {
+            String rootPath = rootDir.getCanonicalPath();
+            String targetPath = targetFile.getCanonicalPath();
+            
+            if (targetPath.equals(rootPath)) {
+                return "/";
+            }
+            
+            String relativePath;
+            if (targetPath.startsWith(rootPath)) {
+                relativePath = targetPath.substring(rootPath.length());
+            } else {
+                relativePath = targetFile.getName();
+            }
+            
+            relativePath = relativePath.replace(File.separatorChar, '/');
+            if (!relativePath.startsWith("/")) {
+                relativePath = "/" + relativePath;
+            }
+            
+            return relativePath;
+        } catch (IOException e) {
+            return "/" + targetFile.getName();
         }
     }
 }

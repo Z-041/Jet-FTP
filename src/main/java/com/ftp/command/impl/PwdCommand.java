@@ -3,6 +3,7 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.util.PathUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,15 +15,7 @@ public class PwdCommand extends BaseCommandHandler {
         File currentDir = session.getFileSystemContext().getCurrentDirectory();
         File rootDir = session.getFileSystemContext().getRootDirectory();
         
-        String relativePath = "/";
-        if (!currentDir.equals(rootDir)) {
-            relativePath = currentDir.getAbsolutePath().substring(rootDir.getAbsolutePath().length());
-            relativePath = relativePath.replace(File.separatorChar, '/');
-            if (!relativePath.startsWith("/")) {
-                relativePath = "/" + relativePath;
-            }
-        }
-        
+        String relativePath = PathUtil.computeFtpRelativePath(rootDir, currentDir);
         sendResponse(out, ResponseGenerator.pwd(relativePath));
     }
 

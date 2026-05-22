@@ -6,9 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CommandFactory {
-    private static class FactoryHolder {
-        private static final CommandFactory INSTANCE = new CommandFactory();
-    }
+    private static final CommandFactory INSTANCE = new CommandFactory();
 
     private final Map<String, CommandHandler> commands;
 
@@ -18,7 +16,7 @@ public class CommandFactory {
     }
 
     public static CommandFactory getInstance() {
-        return FactoryHolder.INSTANCE;
+        return INSTANCE;
     }
 
     private void registerCommands() {

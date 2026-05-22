@@ -18,9 +18,7 @@ public class IPFilter {
     private volatile boolean whitelistEnabled = false;
     private volatile boolean blacklistEnabled = true;
 
-    private static class IPFilterHolder {
-        private static final IPFilter INSTANCE = new IPFilter();
-    }
+    private static final IPFilter INSTANCE = new IPFilter();
 
     private IPFilter() {
         this.whitelist = ConcurrentHashMap.newKeySet();
@@ -30,7 +28,7 @@ public class IPFilter {
     }
 
     public static IPFilter getInstance() {
-        return IPFilterHolder.INSTANCE;
+        return INSTANCE;
     }
 
     public boolean isAllowed(InetAddress address) {

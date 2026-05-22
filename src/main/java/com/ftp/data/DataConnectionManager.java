@@ -2,6 +2,7 @@ package com.ftp.data;
 
 import com.ftp.config.Config;
 import com.ftp.config.ConfigManager;
+import com.ftp.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ftp.session.Session;
@@ -9,9 +10,7 @@ import com.ftp.session.TransferContext;
 
 import java.io.*;
 import java.net.*;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -145,7 +144,7 @@ public class DataConnectionManager {
 
             for (int i = 0; i < maxAttempts; i++) {
                 int port = portMin + ThreadLocalRandom.current().nextInt(range);
-                try (ServerSocket testSocket = new ServerSocket(port)) {
+                try (ServerSocket testSocket = new ServerSocket(port, 50, (InetAddress) null)) {
                     testSocket.setReuseAddress(true);
                     return port;
                 } catch (IOException e) {
@@ -155,11 +154,10 @@ public class DataConnectionManager {
             logger.warn("Could not find available port in range " + portMin + "-" + portMax + ", using system-assigned port");
         }
 
-        ServerSocket socket = new ServerSocket(0);
-        socket.setReuseAddress(true);
-        int port = socket.getLocalPort();
-        socket.close();
-        return port;
+        try (ServerSocket socket = new ServerSocket(0, 50, (InetAddress) null)) {
+            socket.setReuseAddress(true);
+            return socket.getLocalPort();
+        }
     }
 
     public void closePassiveServerSocket() {
@@ -298,13 +296,11 @@ public class DataConnectionManager {
     }
 
     private String formatListing(File file) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm", Locale.US);
-
         StringBuilder sb = new StringBuilder();
         sb.append(file.isDirectory() ? "d" : "-");
         sb.append("rwxr-xr-x 1 ftp ftp ");
         sb.append(String.format("%12d ", file.length()));
-        sb.append(sdf.format(new Date(file.lastModified()))).append(" ");
+        sb.append(DateUtil.formatListingTimestamp(file.lastModified())).append(" ");
         sb.append(file.getName());
         return sb.toString();
     }

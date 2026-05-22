@@ -3,12 +3,11 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.util.DateUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MdtmCommand extends BaseCommandHandler {
     @Override
@@ -30,8 +29,7 @@ public class MdtmCommand extends BaseCommandHandler {
             return;
         }
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String timestamp = sdf.format(new Date(file.lastModified()));
+        String timestamp = DateUtil.formatMlsxTimestamp(file.lastModified());
         sendResponse(out, ResponseGenerator.mdtm(timestamp));
     }
 

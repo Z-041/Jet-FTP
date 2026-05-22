@@ -17,9 +17,7 @@ public class LoginAttemptManager {
     private final long lockoutDurationMs;
     private final ConcurrentHashMap<String, LoginAttempt> attempts;
 
-    private static class LoginAttemptManagerHolder {
-        private static final LoginAttemptManager INSTANCE = new LoginAttemptManager();
-    }
+    private static final LoginAttemptManager INSTANCE = new LoginAttemptManager();
 
     private LoginAttemptManager() {
         this(DEFAULT_MAX_ATTEMPTS, DEFAULT_LOCKOUT_DURATION_MS);
@@ -32,7 +30,7 @@ public class LoginAttemptManager {
     }
 
     public static LoginAttemptManager getInstance() {
-        return LoginAttemptManagerHolder.INSTANCE;
+        return INSTANCE;
     }
 
     public boolean isBlocked(InetAddress address) {

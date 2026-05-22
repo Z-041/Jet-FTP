@@ -12,6 +12,10 @@ public class PathValidator {
     private static final Logger logger = LoggerFactory.getLogger(PathValidator.class);
 
     public static File resolvePath(File rootDir, String userPath) throws SecurityException {
+        return resolvePath(rootDir, rootDir, userPath);
+    }
+    
+    public static File resolvePath(File rootDir, File baseDir, String userPath) throws SecurityException {
         validateRootDirectory(rootDir);
 
         if (userPath == null || userPath.trim().isEmpty() || "/".equals(userPath) || "\\".equals(userPath)) {
@@ -20,13 +24,28 @@ public class PathValidator {
 
         validateUserPath(userPath);
 
-        String sanitized = sanitizeAndValidate(userPath);
+        // 确定实际用于解析的基准目录
+        File actualBaseDir;
+        String actualPath;
+        
+        // 如果路径以 / 开头，则相对于根目录解析
+        if (userPath.startsWith("/")) {
+            actualBaseDir = rootDir;
+            actualPath = userPath.substring(1); // 去除开头的 /
+        } else {
+            // 否则，相对于指定的基准目录解析
+            actualBaseDir = baseDir;
+            actualPath = userPath;
+        }
+
+        String sanitized = sanitizeAndValidate(actualPath);
         if (sanitized == null || sanitized.isEmpty() || ".".equals(sanitized)) {
-            return rootDir;
+            return actualBaseDir;
         }
 
         Path rootPath = rootDir.toPath().toAbsolutePath().normalize();
-        Path resolvedPath = rootPath.resolve(sanitized).toAbsolutePath().normalize();
+        Path basePath = actualBaseDir.toPath().toAbsolutePath().normalize();
+        Path resolvedPath = basePath.resolve(sanitized).toAbsolutePath().normalize();
 
         if (!isSubpath(rootPath, resolvedPath)) {
             logger.warn("Path traversal attempt blocked: {} (root: {}, resolved: {})", userPath, rootPath, resolvedPath);
@@ -93,7 +112,8 @@ public class PathValidator {
 
         String normalized = userPath.replace('\\', '/');
 
-        if (normalized.startsWith("/")) {
+        // 检测真正的系统绝对路径
+        if (isSystemAbsolutePath(userPath)) {
             throw new SecurityException("Access denied: absolute paths not allowed");
         }
 
@@ -110,45 +130,50 @@ public class PathValidator {
         }
     }
 
+    private static boolean isSystemAbsolutePath(String path) {
+        // 检测 Windows 绝对路径 (例如 C:\ 或 D:/)
+        if (path.length() >= 2 && Character.isLetter(path.charAt(0)) && path.charAt(1) == ':') {
+            return true;
+        }
+
+        // 检测 Windows UNC 路径 (例如 \\server\share)
+        if (path.startsWith("\\\\")) {
+            return true;
+        }
+
+        // 注意：FTP协议中以 / 开头的路径不是系统绝对路径，而是相对于服务器根目录
+        return false;
+    }
+
     private static String sanitizeAndValidate(String path) {
         if (path == null) {
             return "";
         }
 
         String sanitized = path.trim();
+        
+        // 统一路径分隔符
         sanitized = sanitized.replace('\\', '/');
-
+        
+        // 合并连续的斜杠
         sanitized = sanitized.replaceAll("//+", "/");
-
+        
+        // 移除 ./ 前缀
         if (sanitized.startsWith("./")) {
             sanitized = sanitized.substring(2);
         }
-
-        if (sanitized.equals("..") || sanitized.startsWith("..")) {
-            return "";
-        }
-
-        sanitized = sanitized.replaceAll("/\\.\\./", "/");
-        if (sanitized.endsWith("/..")) {
-            sanitized = sanitized.substring(0, sanitized.length() - 3);
-        }
-
-        if (sanitized.contains("..")) {
-            return "";
-        }
-
-        if (sanitized.contains("~")) {
-            sanitized = sanitized.replace("~", "");
-        }
-
+        
+        // 移除尾部斜杠（除了根目录，但此时我们已经处理过了）
         if (sanitized.endsWith("/") && sanitized.length() > 1) {
             sanitized = sanitized.substring(0, sanitized.length() - 1);
         }
-
-        if (sanitized.isEmpty()) {
+        
+        // 检查是否包含非法字符或路径遍历
+        // 注意：validateUserPath 已经检查过了，这里只是再次确保
+        if (sanitized.contains("..")) {
             return "";
         }
-
+        
         return sanitized;
     }
 }

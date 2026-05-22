@@ -21,7 +21,9 @@ public abstract class BaseCommandHandler implements CommandHandler {
 
     protected File resolvePath(Session session, String path) {
         try {
-            return PathValidator.resolvePath(session.getFileSystemContext().getRootDirectory(), path);
+            File rootDir = session.getFileSystemContext().getRootDirectory();
+            File currentDir = session.getFileSystemContext().getCurrentDirectory();
+            return PathValidator.resolvePath(rootDir, currentDir, path);
         } catch (SecurityException e) {
             logger.error("Path resolution failed: " + path + " - " + e.getMessage());
             return session.getFileSystemContext().getRootDirectory();

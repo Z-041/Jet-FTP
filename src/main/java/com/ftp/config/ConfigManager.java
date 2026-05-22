@@ -20,9 +20,7 @@ public class ConfigManager {
     private final ConfigParser configParser;
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
 
-    private static class ConfigManagerHolder {
-        private static final ConfigManager INSTANCE = new ConfigManager();
-    }
+    private static final ConfigManager INSTANCE = new ConfigManager();
 
     private ConfigManager() {
         this.configParser = new ConfigParser();
@@ -55,7 +53,7 @@ public class ConfigManager {
      * @return ConfigManager 实例
      */
     public static ConfigManager getInstance() {
-        return ConfigManagerHolder.INSTANCE;
+        return INSTANCE;
     }
 
     /**

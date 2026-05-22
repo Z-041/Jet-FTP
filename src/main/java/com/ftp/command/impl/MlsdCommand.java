@@ -3,14 +3,12 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.util.DateUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class MlsdCommand extends BaseCommandHandler {
 
@@ -51,15 +49,13 @@ public class MlsdCommand extends BaseCommandHandler {
             files = new File[0];
         }
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-
         try (java.io.BufferedWriter writer = new java.io.BufferedWriter(
                 new java.io.OutputStreamWriter(socket.getOutputStream()))) {
             for (File file : files) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("type=").append(file.isDirectory() ? "dir" : "file").append(";");
                 sb.append("size=").append(file.length()).append(";");
-                sb.append("modify=").append(sdf.format(new Date(file.lastModified()))).append(";");
+                sb.append("modify=").append(DateUtil.formatMlsxTimestamp(file.lastModified())).append(";");
                 sb.append("perm=").append(file.canRead() ? "r" : "").append(file.canWrite() ? "w" : "").append(";");
                 sb.append(" ").append(file.getName()).append("\r\n");
                 writer.write(sb.toString());

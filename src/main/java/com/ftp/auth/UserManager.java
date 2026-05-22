@@ -17,9 +17,7 @@ public class UserManager {
     private final UserFileHandler userFileHandler;
     private final int bcryptRounds;
 
-    private static class UserManagerHolder {
-        private static final UserManager INSTANCE = new UserManager();
-    }
+    private static final UserManager INSTANCE = new UserManager();
 
     private UserManager() {
         this.users = new ConcurrentHashMap<>();
@@ -30,7 +28,7 @@ public class UserManager {
     }
 
     public static UserManager getInstance() {
-        return UserManagerHolder.INSTANCE;
+        return INSTANCE;
     }
 
     private void loadUsers() {

@@ -3,6 +3,7 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.util.PathUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,35 +30,12 @@ public class MkdCommand extends BaseCommandHandler {
         }
         
         if (newDir.mkdirs()) {
-            String relativePath = computeRelativePath(session.getFileSystemContext().getRootDirectory(), newDir);
+            String relativePath = PathUtil.computeFtpRelativePath(session.getFileSystemContext().getRootDirectory(), newDir);
             logger.info("Created directory: " + newDir.getAbsolutePath());
             sendResponse(out, ResponseGenerator.created(relativePath));
         } else {
             sendResponse(out, ResponseGenerator.CODE_550);
         }
-    }
-
-    private String computeRelativePath(File rootDir, File targetFile) throws IOException {
-        String rootPath = rootDir.getCanonicalPath();
-        String targetPath = targetFile.getCanonicalPath();
-        
-        if (targetPath.equals(rootPath)) {
-            return "/";
-        }
-        
-        String relativePath;
-        if (targetPath.startsWith(rootPath)) {
-            relativePath = targetPath.substring(rootPath.length());
-        } else {
-            relativePath = targetFile.getName();
-        }
-        
-        relativePath = relativePath.replace(File.separatorChar, '/');
-        if (!relativePath.startsWith("/")) {
-            relativePath = "/" + relativePath;
-        }
-        
-        return relativePath;
     }
 
     @Override

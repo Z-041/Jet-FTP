@@ -30,9 +30,7 @@ public class Logger {
     private PrintWriter cachedWriter;
     private File currentLogFile;
 
-    private static class LoggerHolder {
-        private static final Logger INSTANCE = new Logger();
-    }
+    private static final Logger INSTANCE = new Logger();
 
     private Logger() {
         Config config = ConfigManager.getInstance().getConfig();
@@ -68,7 +66,7 @@ public class Logger {
     }
 
     public static Logger getInstance() {
-        return LoggerHolder.INSTANCE;
+        return INSTANCE;
     }
 
     public void setLogLevel(LogLevel level) {

@@ -3,13 +3,11 @@ package com.ftp.command.impl;
 import com.ftp.command.BaseCommandHandler;
 import com.ftp.protocol.ResponseGenerator;
 import com.ftp.session.Session;
+import com.ftp.util.DateUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class MlstCommand extends BaseCommandHandler {
 
@@ -29,8 +27,6 @@ public class MlstCommand extends BaseCommandHandler {
             sendResponse(out, ResponseGenerator.CODE_550);
             return;
         }
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
         
         StringBuilder sb = new StringBuilder();
         sb.append("250-Listing ");
@@ -42,7 +38,7 @@ public class MlstCommand extends BaseCommandHandler {
         sb.append("\r\n");
         sb.append(" type=").append(file.isDirectory() ? "dir" : "file").append(";");
         sb.append("size=").append(file.length()).append(";");
-        sb.append("modify=").append(sdf.format(new Date(file.lastModified()))).append(";");
+        sb.append("modify=").append(DateUtil.formatMlsxTimestamp(file.lastModified())).append(";");
         sb.append("perm=").append(file.canRead() ? "r" : "").append(file.canWrite() ? "w" : "").append(";");
         sb.append(" ").append(file.getName()).append("\r\n");
         sb.append("250 End");

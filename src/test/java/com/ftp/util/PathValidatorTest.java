@@ -150,10 +150,18 @@ class PathValidatorTest {
         }
 
         @Test
-        @DisplayName("绝对路径应被拒绝")
-        void absolutePathShouldBeRejected() {
+        @DisplayName("Windows绝对路径应被拒绝")
+        void windowsAbsolutePathShouldBeRejected() {
             assertThrows(SecurityException.class,
-                () -> PathValidator.resolvePath(rootDir, "/etc/passwd"));
+                () -> PathValidator.resolvePath(rootDir, "C:\\etc\\passwd"));
+        }
+        
+        @Test
+        @DisplayName("FTP协议根路径应正常解析")
+        void ftpRootPathShouldBeResolved() {
+            File result = PathValidator.resolvePath(rootDir, "/path/to/file");
+            assertNotNull(result);
+            assertTrue(result.getPath().contains("path"));
         }
 
         @Test
@@ -175,6 +183,53 @@ class PathValidatorTest {
         void trailingSlashShouldBeRemoved() throws IOException {
             File result = PathValidator.resolvePath(rootDir, "path/to/file/");
             assertFalse(result.getPath().endsWith("/"));
+        }
+    }
+
+    @Nested
+    @DisplayName("相对当前目录路径解析测试")
+    class RelativePathFromCurrentDirectoryTests {
+        
+        @Test
+        @DisplayName("从当前目录解析相对路径")
+        void resolveRelativePathFromCurrentDir() throws IOException {
+            // 创建子目录
+            File subdir1 = new File(rootDir, "subdir1");
+            subdir1.mkdirs();
+            File subdir2 = new File(subdir1, "subdir2");
+            subdir2.mkdirs();
+            
+            // 从 subdir1 目录解析 "subdir2/file.txt"
+            File result = PathValidator.resolvePath(rootDir, subdir1, "subdir2/file.txt");
+            
+            // 期望结果应该是 rootDir/subdir1/subdir2/file.txt
+            File expected = new File(subdir2, "file.txt");
+            assertEquals(expected.getAbsolutePath(), result.getAbsolutePath());
+        }
+        
+        @Test
+        @DisplayName("从当前目录解析绝对路径应该忽略当前目录")
+        void resolveAbsolutePathFromCurrentDir() throws IOException {
+            // 创建子目录
+            File subdir1 = new File(rootDir, "subdir1");
+            subdir1.mkdirs();
+            
+            // 从 subdir1 目录解析 "/path/to/file.txt"
+            File result = PathValidator.resolvePath(rootDir, subdir1, "/path/to/file.txt");
+            
+            // 期望结果应该是 rootDir/path/to/file.txt（忽略当前目录 subdir1）
+            File expected = new File(rootDir, "path/to/file.txt");
+            assertEquals(expected.getAbsolutePath(), result.getAbsolutePath());
+        }
+        
+        @Test
+        @DisplayName("从当前目录解析 . 应返回当前目录")
+        void resolveDotFromCurrentDir() {
+            File subdir1 = new File(rootDir, "subdir1");
+            subdir1.mkdirs();
+            
+            File result = PathValidator.resolvePath(rootDir, subdir1, ".");
+            assertEquals(subdir1.getAbsolutePath(), result.getAbsolutePath());
         }
     }
 
